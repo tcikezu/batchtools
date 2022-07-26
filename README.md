@@ -73,3 +73,43 @@ This R package is licensed under the [LGPL-3](https://www.gnu.org/licenses/lgpl-
 If you encounter problems using this software (lack of documentation, misleading or wrong documentation, unexpected behaviour, bugs, ...) or just want to suggest features, please open an issue in the [issue tracker](https://github.com/mllg/batchtools/issues).
 Pull requests are welcome and will be included at the discretion of the author.
 If you have customized a template file for your (larger) computing site, please share it: fork the repository, place your template in `inst/templates` and send a pull request.
+
+## Contribution: custom read and write function for results
+Use cases: saving results as hdf5, as loom, csv, txt, tsv, mtx, bam, etc
+
+These use cases are usually paired with an R interface for the opening of such files.
+
+### Plan:
+Write a new method **writeCustom** that accepts a write function, **write_fun**. Also create a corresponding **readCustom** that accepts a read function, **read_fun**.
+
+#### Replace **writeRDS** with **writeCustom**
+```
+doJobCollection.R
+164:      writeRDS(result, file = getResultFiles(jc, id), compress = jc$compress)
+```
+```
+Job.R
+
+93:        writeRDS(result, file = cache.file, compress = self$compress)
+```
+
+#### Replace **readRDS** with **readCustom**
+```
+testJob.R
+51:      return(readRDS(fn.res))
+```
+```
+loadResult.R
+17:  return(readRDS(fn))
+```
+```
+Job.R
+84:          result = try(readRDS(cache.file))
+```
+```
+reduceResults.R
+84:    init = readRDS(fns[1L])
+93:      init = fun(init, readRDS(fns[i]), job = makeJob(ids[i], reg = reg), ...)
+98:      init = fun(init, readRDS(fns[i]), ...)
+228:      res = worker(readRDS(fns[i]), makeJob(ids$job.id[i], reader = reader, reg = reg), ...)
+```
