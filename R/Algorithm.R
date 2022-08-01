@@ -18,11 +18,15 @@
 #'
 #'   If you do not provide a function, it defaults to a function which just returns the instance.
 #' @template expreg
+#' @param save_result [\code{function}]\cr
+#'   This function is used to save the result of the algorithm, it defaults to \code{saveRDS}.
+#' @param ... [\code{ANY}]\cr
+#'   Additional parameters for \code{save_result}.
 #' @return [\code{Algorithm}]. Object of class \dQuote{Algorithm}.
 #' @aliases Algorithm
 #' @seealso \code{\link{Problem}}, \code{\link{addExperiments}}
 #' @export
-addAlgorithm = function(name, fun = NULL, reg = getDefaultRegistry())  {
+addAlgorithm = function(name, fun = NULL, write_fun = saveRDS, ..., reg = getDefaultRegistry())  {
   assertRegistry(reg, class = "ExperimentRegistry", writeable = TRUE)
   assertString(name, min.chars = 1L)
   if (!stri_detect_regex(name, "^[[:alnum:]_.-]+$"))
@@ -34,7 +38,7 @@ addAlgorithm = function(name, fun = NULL, reg = getDefaultRegistry())  {
   }
 
   info("Adding algorithm '%s'", name)
-  algo = setClasses(list(fun = fun, name = name), "Algorithm")
+  algo = setClasses(list(fun = fun, save_result=save_result, save_pars=list(...), name = name), "Algorithm")
   writeRDS(algo, file = getAlgorithmURI(reg, name), compress = reg$compress)
   reg$algorithms = union(reg$algorithms, name)
   saveRegistry(reg)
